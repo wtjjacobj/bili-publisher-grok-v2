@@ -1,0 +1,85 @@
+{
+  "video_type": "科幻影视恶搞短片",
+  "core_subject": "星球大战风格的花园婚礼",
+  "core_subject_evidence_ids": ["source-description", "frame-01", "frame-03"],
+  "core_event": "花园婚礼镜头切到阳台上举着收录机的男子",
+  "core_event_evidence_ids": ["frame-05", "frame-08", "frame-10"],
+  "timeline": [
+    {
+      "time": 1.736,
+      "summary_zh": "新人与黑袍主持者站在鲜花拱门前",
+      "evidence_ids": ["frame-01"]
+    },
+    {
+      "time": 8.678,
+      "summary_zh": "穿白色盔甲的宾客站在花园座席后方",
+      "evidence_ids": ["frame-03"]
+    },
+    {
+      "time": 15.621,
+      "summary_zh": "阳台上的男子手持或举起一台黑色收录机",
+      "evidence_ids": ["frame-05"]
+    },
+    {
+      "time": 26.006,
+      "summary_zh": "阳台上的男子双手举起一台收录机",
+      "evidence_ids": ["frame-08"]
+    },
+    {
+      "time": 32.978,
+      "summary_zh": "结尾近景继续展示男子举着收录机",
+      "evidence_ids": ["frame-10"]
+    }
+  ],
+  "turning_point": "镜头从花园婚礼场景切到阳台上举着收录机的男子",
+  "turning_point_evidence_ids": ["frame-03", "frame-05"],
+  "outcome": "男子在阳台上举着收录机面对婚礼现场",
+  "outcome_evidence_ids": ["frame-08", "frame-10"],
+  "hook": "科幻婚礼中有人在阳台举起收录机",
+  "hook_evidence_ids": ["frame-03", "frame-05", "frame-08", "frame-10"],
+  "evidence": [
+    {
+      "id": "source-description",
+      "kind": "source",
+      "summary_zh": "来源正文写着遥远星系中的婚礼，指向星球大战式婚礼设定"
+    },
+    {
+      "id": "frame-01",
+      "kind": "frame",
+      "summary_zh": "鲜花拱门前有穿婚纱礼服的新人和黑袍人物"
+    },
+    {
+      "id": "frame-03",
+      "kind": "frame",
+      "summary_zh": "花园婚礼座席后方站着多名白色盔甲人物"
+    },
+    {
+      "id": "frame-05",
+      "kind": "frame",
+      "summary_zh": "阳台上的男子手持或举起黑色收录机"
+    },
+    {
+      "id": "frame-08",
+      "kind": "frame",
+      "summary_zh": "阳台上的男子把黑色收录机举过头顶"
+    },
+    {
+      "id": "frame-10",
+      "kind": "frame",
+      "summary_zh": "结尾近景仍是男子高举收录机"
+    }
+  ],
+  "entities": [
+    {
+      "original_name": "Star Wars",
+      "zh_name": "星球大战",
+      "type": "work",
+      "confidence": 0.95,
+      "evidence_ids": ["source-description", "frame-03"]
+    }
+  ],
+  "source_account": "Yapayzekaserisi",
+  "verified_dialogue": [],
+  "uncertainties": ["画面中的具体角色身份没有独立文字证据确认", "无法仅凭画面确认短片的制作方式"],
+  "forbidden_claims": ["达斯·摩尔", "欧比-旺·克诺比", "婚礼求婚成功"]
+}

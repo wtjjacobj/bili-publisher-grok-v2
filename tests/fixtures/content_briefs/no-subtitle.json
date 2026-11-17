@@ -1,0 +1,62 @@
+{
+  "video_type": "影视战争片段",
+  "core_subject": "浓烟中的古代战场",
+  "core_subject_evidence_ids": ["frame-01", "frame-02"],
+  "core_event": "骑兵冲过战场，士兵在燃烧建筑前推进",
+  "core_event_evidence_ids": ["frame-04", "frame-07"],
+  "timeline": [
+    {
+      "time": 3.371,
+      "summary_zh": "远景中的士兵队伍沿道路前进",
+      "evidence_ids": ["frame-01"]
+    },
+    {
+      "time": 10.115,
+      "summary_zh": "建筑屋顶燃烧并升起浓烟",
+      "evidence_ids": ["frame-02"]
+    },
+    {
+      "time": 23.601,
+      "summary_zh": "骑兵持长兵器从烟雾中冲出",
+      "evidence_ids": ["frame-04"]
+    },
+    {
+      "time": 43.830,
+      "summary_zh": "士兵在火场前继续移动",
+      "evidence_ids": ["frame-07"]
+    }
+  ],
+  "turning_point": "骑兵从浓烟中出现并横穿画面",
+  "turning_point_evidence_ids": ["frame-04"],
+  "outcome": "军队继续在燃烧建筑附近推进",
+  "outcome_evidence_ids": ["frame-07"],
+  "hook": "燃烧建筑与骑兵冲锋交替出现",
+  "hook_evidence_ids": ["frame-02", "frame-04", "frame-07"],
+  "evidence": [
+    {
+      "id": "frame-01",
+      "kind": "frame",
+      "summary_zh": "开头远景可见大批古代士兵"
+    },
+    {
+      "id": "frame-02",
+      "kind": "frame",
+      "summary_zh": "传统建筑正在猛烈燃烧"
+    },
+    {
+      "id": "frame-04",
+      "kind": "frame",
+      "summary_zh": "多名骑兵从烟雾中冲过"
+    },
+    {
+      "id": "frame-07",
+      "kind": "frame",
+      "summary_zh": "士兵在燃烧建筑前列队推进"
+    }
+  ],
+  "entities": [],
+  "source_account": "The Werewolf",
+  "verified_dialogue": [],
+  "uncertainties": ["转写只用于内容理解，不代表生成了字幕", "具体作品名称无法确认"],
+  "forbidden_claims": ["已添加中文字幕", "提供中英双字", "内嵌字幕"]
+}

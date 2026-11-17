@@ -1,0 +1,75 @@
+{
+  "video_type": "现场短视频",
+  "core_subject": "蒙古国夜间电音派对",
+  "core_subject_evidence_ids": ["source-description", "frame-01"],
+  "core_event": "镜头从女DJ转向人群后，骑马者和马匹进入派对现场",
+  "core_event_evidence_ids": ["source-description", "frame-09", "frame-10"],
+  "timeline": [
+    {
+      "time": 1.189,
+      "summary_zh": "女DJ在红色灯光下的舞台操作设备并随音乐挥手",
+      "evidence_ids": ["frame-01"]
+    },
+    {
+      "time": 15.455,
+      "summary_zh": "镜头离开DJ台并转向台下聚集的人群",
+      "evidence_ids": ["frame-07"]
+    },
+    {
+      "time": 20.210,
+      "summary_zh": "派对人群前方出现马匹和骑马者",
+      "evidence_ids": ["frame-09"]
+    },
+    {
+      "time": 22.588,
+      "summary_zh": "结尾画面可见多匹马穿过舞台前的人群",
+      "evidence_ids": ["frame-10"]
+    }
+  ],
+  "turning_point": "镜头转向人群后，舞台前突然出现马匹",
+  "turning_point_evidence_ids": ["frame-07", "frame-09"],
+  "outcome": "多匹马和骑马者穿过派对人群",
+  "outcome_evidence_ids": ["frame-09", "frame-10"],
+  "hook": "派对结尾马匹进入舞台前的人群",
+  "hook_evidence_ids": ["source-description", "frame-09", "frame-10"],
+  "evidence": [
+    {
+      "id": "source-description",
+      "kind": "source",
+      "summary_zh": "原帖说明蒙古国人口与马匹数量相近，并强调即使在锐舞派对也会有马"
+    },
+    {
+      "id": "frame-01",
+      "kind": "frame",
+      "summary_zh": "开头画面是女DJ在夜间舞台操作设备"
+    },
+    {
+      "id": "frame-07",
+      "kind": "frame",
+      "summary_zh": "后段镜头从DJ舞台转向红光下的人群"
+    },
+    {
+      "id": "frame-09",
+      "kind": "frame",
+      "summary_zh": "结尾前画面出现马匹和骑马者进入派对人群"
+    },
+    {
+      "id": "frame-10",
+      "kind": "frame",
+      "summary_zh": "结尾画面可见多匹马从舞台前穿过"
+    }
+  ],
+  "entities": [
+    {
+      "original_name": "Mongolia",
+      "zh_name": "蒙古国",
+      "type": "location",
+      "confidence": 1,
+      "evidence_ids": ["source-description"]
+    }
+  ],
+  "source_account": "Massimo",
+  "verified_dialogue": [],
+  "uncertainties": ["无法仅凭画面确认所有骑马者的身份"],
+  "forbidden_claims": ["全场观众都在跳舞", "已添加中文字幕"]
+}

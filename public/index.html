@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<script>
+if (location.protocol === 'file:') location.replace('http://127.0.0.1:3459/');
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>B站投稿助手</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0f0f0f;
+  color: #e0e0e0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+.container {
+  max-width: 900px;
+  width: 100%;
+}
+
+/* Header */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #2a2a2a;
+}
+.header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  color: #fff;
+}
+.badge {
+  background: #ff6b35;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+}
+.badge.agent { background: #4a9eff; }
+.badge.off { background: #333; color: #ddd; }
+.status-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #555;
+  margin-left: auto;
+  transition: background 0.3s;
+}
+.status-dot.connected { background: #00d26a; }
+.status-dot.error { background: #ff4757; }
+
+/* Card */
+.card {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 12px;
+  font-weight: 500;
+}
+
+/* Input */
+.url-input-group {
+  display: flex;
+  gap: 10px;
+}
+.url-input-group input {
+  flex: 1;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.url-input-group input:focus { border-color: #4a9eff; }
+.url-input-group input::placeholder { color: #555; }
+.btn {
+  background: #4a9eff;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn:hover { background: #3a8eef; }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { background: #333; cursor: not-allowed; }
+.btn.primary { background: #ff6b35; }
+.btn.primary:hover { background: #e85a2a; }
+.btn.danger { background: #ff4757; }
+.btn.success { background: #00d26a; color: #000; }
+
+/* Subtitle mode selector */
+.subtitle-mode-row {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 12px;
+}
+.subtitle-mode-row > span {
+  flex: 1 1 100%;
+  margin-left: 23px;
+  line-height: 1.45;
+}
+#localSaveRow > span { margin-left: 0; }
+.subtitle-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #ccc;
+  cursor: pointer;
+  user-select: none;
+}
+.subtitle-toggle input {
+  width: 15px;
+  height: 15px;
+  accent-color: #00d26a;
+}
+.mode-options {
+  display: flex;
+  gap: 6px;
+}
+.mode-btn {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: #aaa;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-btn:hover { border-color: #4a9eff; color: #4a9eff; }
+.mode-btn.active { border-color: #ff6b35; background: #2a1a0a; color: #ff6b35; }
+.mode-btn .mode-icon { margin-right: 4px; }
+
+/* Voice button */
+.voice-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+.voice-btn {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  background: #222;
+  border: 1px solid #333;
+  color: #888;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.voice-btn:hover { border-color: #4a9eff; color: #4a9eff; }
+.voice-btn.recording {
+  background: #ff4757;
+  border-color: #ff4757;
+  color: #fff;
+  animation: pulse 1.2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,71,87,0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(255,71,87,0); }
+}
+.voice-status {
+  font-size: 12px;
+  color: #555;
+  flex-shrink: 0;
+}
+
+/* Description */
+.desc-area {
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #fff;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 60px;
+  outline: none;
+  margin-top: 10px;
+  font-family: inherit;
+}
+.desc-area:focus { border-color: #4a9eff; }
+.desc-area::placeholder { color: #555; }
+
+/* Progress */
+.progress-section { display: none; }
+.progress-section.active { display: block; }
+.progress-bar-track {
+  background: #222;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #4a9eff, #00d26a);
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  width: 0%;
+}
+.progress-text {
+  font-size: 14px;
+  color: #c8c8c8;
+  text-align: center;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.progress-section.failed {
+  border-color: #6a3030;
+}
+.progress-section.failed .progress-bar-fill {
+  background: #ff4757;
+  width: 100% !important;
+}
+.progress-section.failed .progress-text {
+  color: #ffd0d0;
+  text-align: left;
+}
+.progress-actions {
+  display: none;
+  justify-content: center;
+  margin-top: 14px;
+}
+.progress-section.failed .progress-actions { display: flex; }
+.progress-section.failed .steps { display: none; }
+.stage-line { white-space: pre-wrap; word-break: break-word; }
+
+/* Steps */
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+}
+.step-chip {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #222;
+  color: #666;
+  transition: all 0.3s;
+}
+.step-chip.done { background: #1a3a1a; color: #00d26a; }
+.step-chip.active { background: #1a2a4a; color: #4a9eff; }
+.step-chip.pending { color: #444; }
+
+/* Result Section */
+.result-section { display: none; }
+.result-section.active { display: block; }
+
+/* Screenshots */
+.screenshot-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.screenshot-card {
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.screenshot-card:hover { border-color: #4a9eff; }
+.screenshot-card.selected { border-color: #ff6b35; }
+.screenshot-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+}
+.screenshot-card .cover-badge {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: #ff6b35;
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  display: none;
+}
+.screenshot-card.selected .cover-badge { display: block; }
+
+/* Tags */
+.tags-input {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.tag-chip {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #1a2a4a;
+  color: #4a9eff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.tag-chip button {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+}
+.tag-chip button:hover { color: #ff4757; }
+.add-tag-input {
+  background: transparent;
+  border: 1px dashed #333;
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: #fff;
+  font-size: 13px;
+  outline: none;
+  width: 100px;
+}
+.add-tag-input:focus { border-color: #4a9eff; }
+
+/* Title */
+.title-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.title-option {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 8px 14px;
+  color: #e0e0e0;
+  font-size: 15px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.title-option:hover { border-color: #4a9eff; }
+.title-option.selected { border-color: #ff6b35; background: #2a1a0a; }
+.title-option.recommended { border-color: #6f9eff; }
+.recommended-title-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #4a9eff;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 1px;
+}
+.copy-review-warning {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid #ffaa00;
+  border-radius: 8px;
+  background: #34260d;
+  color: #ffd280;
+  font-size: 14px;
+  font-weight: 600;
+}
+.stage-log {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #888;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 140px;
+  overflow: auto;
+}
+.stage-log .stage-line.failed { color: #ff8b8b; }
+.stage-log .stage-line.completed { color: #8fd9a8; }
+.approval-item, .branch-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  font-size: 13px;
+  color: #ddd;
+}
+.branch-item { justify-content: space-between; align-items: center; }
+.branch-info { flex: 1; margin-right: 12px; }
+
+/* Custom title */
+.custom-title-input {
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 15px;
+  outline: none;
+  margin-bottom: 12px;
+}
+.custom-title-input:focus { border-color: #4a9eff; }
+
+/* Description editor */
+.desc-editor {
+  width: 100%;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px 14px;
+  color: #fff;
+  font-size: 14px;
+  resize: vertical;
+  min-height: 80px;
+  outline: none;
+  margin-bottom: 16px;
+  font-family: inherit;
+}
+.desc-editor:focus { border-color: #4a9eff; }
+
+/* Action buttons */
+.action-bar {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
+}
+.char-count { font-size: 12px; color: #555; }
+
+/* Activities */
+.activity-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.activity-item {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+.activity-item:hover { border-color: #4a9eff; }
+.activity-item.recommended { border-color: #ff6b35; background: #2a1a0a; }
+.activity-item .act-name { font-size: 14px; color: #e0e0e0; font-weight: 500; flex: 1; }
+.activity-item .act-reward { font-size: 12px; color: #00d26a; }
+.activity-item .act-threshold { font-size: 11px; color: #888; }
+.activity-item .act-badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 4px; font-weight: 600;
+  background: #ff6b35; color: #fff; flex-shrink: 0;
+}
+.activity-empty { color: #666; font-size: 13px; padding: 8px 0; }
+.activity-item.selected { border-color: #00d26a; background: #1a2a1a; }
+.activity-required { color: #ff6b35; font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+
+/* Publishing overlay */
+.publishing-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 100;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+}
+.publishing-overlay.active { display: flex; }
+.publishing-overlay .spinner {
+  width: 40px; height: 40px;
+  border: 3px solid #333;
+  border-top-color: #ff6b35;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 12px 20px;
+  color: #fff;
+  font-size: 14px;
+  z-index: 200;
+  animation: slideIn 0.3s ease;
+  max-width: 400px;
+}
+.toast.error { border-color: #ff4757; }
+.toast.success { border-color: #00d26a; }
+@keyframes slideIn { from { transform: translateX(100%); opacity: 0; } }
+
+/* Has speech badge */
+.speech-badge {
+  display: inline-block;
+  font-size: 12px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  margin-left: 8px;
+  font-weight: 500;
+}
+.speech-badge.yes { background: #1a3a1a; color: #00d26a; }
+.speech-badge.no { background: #2a2a1a; color: #ffaa00; }
+
+/* Video preview */
+.video-preview {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 8px;
+  margin: 10px 0;
+  background: #000;
+}
+
+/* Split section */
+.split-section { margin-top: 12px; }
+.split-timeline {
+  position: relative;
+  height: 60px;
+  background: #222;
+  border-radius: 8px;
+  margin: 10px 0;
+  overflow: visible;
+  cursor: crosshair;
+}
+.split-bar {
+  position: absolute;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: #ff6b35;
+  cursor: ew-resize;
+  z-index: 10;
+  border-radius: 2px;
+}
+.split-bar::after {
+  content: '×';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #ff6b35;
+  cursor: pointer;
+  display: none;
+}
+.split-bar:hover::after { display: block; }
+.split-time-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: #ff6b35;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.split-preview-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.split-part {
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: #aaa;
+}
+.split-part .part-title { color: #4a9eff; font-weight: 600; }
+.split-part .part-dur { color: #888; }
+.split-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #888;
+}
+.split-info .duration { color: #e0e0e0; font-weight: 600; }
+.split-actions { display: flex; gap: 8px; margin-top: 10px; }
+
+/* ===== Chat Dialog ===== */
+.chat-bubble {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #fb7299, #f25d8e);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(251,114,153,0.4);
+  z-index: 1000;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-size: 22px;
+}
+.chat-bubble:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(251,114,153,0.5);
+}
+.chat-bubble.active {
+  background: #333;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.chat-panel {
+  position: fixed;
+  bottom: 84px;
+  right: 24px;
+  width: 420px;
+  max-height: 560px;
+  background: #1a1a2e;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  border: 1px solid #333;
+  display: none;
+  flex-direction: column;
+  z-index: 999;
+  overflow: hidden;
+}
+.chat-panel.open { display: flex; }
+
+.chat-header {
+  padding: 14px 18px;
+  background: #16213e;
+  border-bottom: 1px solid #333;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+.chat-header h3 {
+  margin: 0;
+  font-size: 14px;
+  color: #fb7299;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.chat-header .badge {
+  font-size: 10px;
+  background: #fb7299;
+  color: #fff;
+  padding: 1px 6px;
+  border-radius: 8px;
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 200px;
+  max-height: 380px;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: #444; border-radius: 2px; }
+
+.chat-msg {
+  max-width: 85%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.chat-msg.user {
+  align-self: flex-end;
+  background: #fb7299;
+  color: #fff;
+  border-bottom-right-radius: 4px;
+}
+.chat-msg.agent {
+  align-self: flex-start;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.system {
+  align-self: center;
+  color: #888;
+  font-size: 12px;
+  padding: 4px 12px;
+  background: transparent;
+}
+.chat-msg.typing {
+  align-self: flex-start;
+  background: #2a2a4a;
+  color: #888;
+  font-style: italic;
+}
+.chat-msg.streaming {
+  align-self: flex-start;
+  background: #2a2a4a;
+  color: #e0e0e0;
+  border-bottom-left-radius: 4px;
+  border: 1px solid #fb729933;
+}
+
+.chat-input-area {
+  padding: 12px;
+  border-top: 1px solid #333;
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.chat-input-area textarea {
+  flex: 1;
+  background: #0f0f23;
+  border: 1px solid #444;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px 12px;
+  font-size: 13px;
+  resize: none;
+  outline: none;
+  font-family: inherit;
+  min-height: 40px;
+  max-height: 100px;
+}
+.chat-input-area textarea:focus { border-color: #fb7299; }
+.chat-input-area button {
+  background: #fb7299;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.chat-input-area button:hover { background: #f25d8e; }
+.chat-input-area button:disabled { background: #555; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>🎬 B站投稿助手</h1>
+    <span class="badge">v2</span>
+    <span class="badge agent">Grok 4.6</span>
+    <div class="status-dot" id="statusDot" title="WebSocket未连接"></div>
+  </div>
+
+  <!-- URL Input -->
+  <div class="card" id="inputCard">
+    <div class="card-title">Step 1 · 粘贴视频链接</div>
+    <div class="url-input-group">
+      <input type="text" id="urlInput" placeholder="粘贴 Twitter/X / YouTube 视频链接..." autocomplete="off">
+      <button class="btn primary" id="submitBtn" onclick="handleSubmit()">🚀 开始处理</button>
+      <button class="btn" id="loadJobBtn" onclick="showLoadJobModal()" style="margin-left:8px;">📂 加载已有项目</button>
+    </div>
+
+    <!-- Simplified workflow notice -->
+    <div class="subtitle-mode-row">
+      <label class="subtitle-toggle">
+        <input type="checkbox" id="burnSubsCheck" checked>
+        烧录中文字幕
+      </label>
+      <span style="color:#aaa;font-size:13px;">外语口播会译成中文烧进成片；没有人声会自动跳过</span>
+    </div>
+    <div class="subtitle-mode-row" id="channelsPostRow">
+      <label class="subtitle-toggle" for="channelsPostCheck">
+        <input type="checkbox" id="channelsPostCheck">
+        同时投稿到微信视频号
+      </label>
+      <span style="color:#aaa;font-size:13px;">不勾只保存 B 站草稿。勾上后，保存草稿时才会打开视频号</span>
+    </div>
+    <div class="subtitle-mode-row" id="localSaveRow">
+      <span style="color:#aaa;font-size:13px;">成片副本会保存到 <span id="localSavePath" style="color:#fff;">/Users/wangtangjie/Desktop/视频号投稿视频</span></span>
+    </div>
+
+    <textarea class="desc-area" id="descInput" placeholder="可选补充，例如选题重点、想强调的画面。不想要字幕可取消上方勾选。" rows="3"></textarea>
+    <div class="voice-row">
+      <button class="voice-btn" id="voiceBtn" onclick="toggleVoice()" title="语音输入">🎤</button>
+      <span class="voice-status" id="voiceStatus">点击麦克风语音输入描述</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="card progress-section" id="progressCard">
+    <div class="card-title" id="progressTitle">视频处理中</div>
+    <div class="progress-bar-track">
+      <div class="progress-bar-fill" id="progressBar"></div>
+    </div>
+    <div class="progress-text" id="progressText">准备处理...</div>
+    <div class="progress-actions">
+      <button class="btn primary" id="retryBtn" type="button" onclick="handleSubmit()">再试一次</button>
+    </div>
+    <div class="stage-log" id="stageLog"></div>
+    <div class="steps" id="stepsChips">
+      <span class="step-chip active" data-step="0">准备</span>
+      <span class="step-chip pending" data-step="1">下载</span>
+      <span class="step-chip pending" data-step="2">读取</span>
+      <span class="step-chip pending" data-step="3">封面</span>
+      <span class="step-chip pending" data-step="4">文案</span>
+      <span class="step-chip pending" data-step="5">完成</span>
+    </div>
+  </div>
+
+  <!-- Result / Edit -->
+  <div class="result-section" id="resultSection">
+    <!-- Screenshots -->
+    <div class="card" id="screenshotCard" style="display:none;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="card-title" style="margin:0;">Step 2 · 选择封面 <span id="speechBadge"></span></div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn" onclick="rescreenshot(8)" title="重新截8张">🔄 重新截图</button>
+          <button class="btn" onclick="rescreenshot(16)" title="截16张更多选择">🖼 多截几张</button>
+          <button class="btn" id="burnSubsBtn" onclick="burnExistingSubtitles()" style="display:none;">🅩 补烧中文字幕</button>
+        </div>
+      </div>
+      <div id="downloadNote" style="display:none;margin:0 0 12px;color:#ffd280;font-size:13px;"></div>
+      <div class="screenshot-grid" id="screenshotGrid"></div>
+    </div>
+
+    <!-- Video Split -->
+    <div class="card" id="splitCard" style="display:none;">
+      <div class="card-title">✂️ 视频分段（可选）</div>
+      <div class="split-info">
+        <span>视频时长: <span class="duration" id="splitDuration">--:--</span> │ 大小: <span id="splitSize">--</span></span>
+        <span>分段数: <span class="duration" id="splitCount">1</span></span>
+      </div>
+      <div class="split-timeline" id="splitTimeline" onclick="handleTimelineClick(event)">
+        <!-- Split bars are dynamically inserted -->
+      </div>
+      <div class="split-preview-list" id="splitPreviewList"></div>
+      <div class="split-actions">
+        <button class="btn" onclick="addSplitPoint()" title="在中间位置加分割点">➕ 加分割点</button>
+        <button class="btn" onclick="clearSplitPoints()" title="清除所有分割点">🗑️ 清除分割</button>
+        <button class="btn" onclick="autoSplitEven()" title="等分视频">📐 等分</button>
+        <button class="btn" onclick="autoSplitBySize()" title="按B站4GB限制自动分段">📦 按4GB限制</button>
+        <button class="btn success" onclick="executeSplit()" id="executeSplitBtn">✂️ 执行切割</button>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="card" id="titleCard" style="display:none;">
+      <div class="card-title">Step 3 · 标题（选一个或自定义，20-35字最佳，关键词放前15字）</div>
+      <div class="copy-review-warning" id="copyReviewWarning" role="alert" style="display:none;"></div>
+      <div class="title-candidates" id="titleCandidates"></div>
+      <input class="custom-title-input" id="customTitle" placeholder="或自定义标题..." maxlength="40">
+      <div class="action-bar" style="justify-content:flex-start;margin-top:8px;">
+        <button class="btn" id="branchBtn" onclick="createTitleBranch()">试一组标题</button>
+      </div>
+      <div id="branchList" style="display:none;margin-top:8px;"></div>
+    </div>
+
+    <!-- Bilibili category -->
+    <div class="card" id="tidCard" style="display:none;">
+      <div class="card-title">Step 4 · B站分区（必填）</div>
+      <input class="custom-title-input" id="tidInput" type="number" min="1" max="9999" step="1" placeholder="例如：科技 188、知识 124、生活 160">
+    </div>
+
+    <!-- Tags -->
+    <div class="card" id="tagCard" style="display:none;">
+      <div class="card-title">Step 5 · 标签（最多10个，全中文）</div>
+      <div class="tags-input" id="tagsContainer"></div>
+      <input class="add-tag-input" id="addTagInput" placeholder="+ 添加标签..." maxlength="20">
+    </div>
+
+    <!-- Activities -->
+    <div class="card" id="activityCard" style="display:none;">
+      <div class="card-title">🎁 可参加活动 <span class="activity-required">（需点击选择，未选择则不参加）</span></div>
+      <div class="activity-list" id="activityList">
+        <div class="activity-empty">未查询到有奖活动</div>
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div class="card" id="approvalCard" style="display:none;">
+      <div class="card-title">确认后再保存草稿</div>
+      <div id="approvalList"></div>
+    </div>
+
+    <div class="card" id="descCard" style="display:none;">
+      <div class="card-title">Step 6 · 描述</div>
+      <textarea class="desc-editor" id="descEditor" rows="4"></textarea>
+      <div class="action-bar">
+        <button class="btn" onclick="downloadToDesktop()" title="复制视频到桌面">📥 下载到桌面</button>
+        <button class="btn" onclick="queryActivities()" title="查询当前B站活动">🎁 查活动</button>
+        <button class="btn" id="resetBtn" onclick="resetAll()">↺ 重新开始</button>
+        <button class="btn primary" id="publishBtn" onclick="handlePublish()">💾 保存草稿</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Publishing overlay -->
+<div class="publishing-overlay" id="publishingOverlay">
+  <div class="spinner"></div>
+  <div style="font-size:16px;color:#e0e0e0;">正在保存草稿到B站...</div>
+</div>
+
+<script src="/ui_helpers.js"></script>
+<script>
+const STEP_NAMES = ['准备', '下载视频', '读取信息', '截取封面', '生成文案', '完成'];
+
+loadLocalSavePath();
+async function loadLocalSavePath() {
+  try {
+    const resp = await fetch('/api/health');
+    const data = await resp.json();
+    if (data.localArchiveDir) {
+      document.getElementById('localSavePath').textContent = data.localArchiveDir;
+    }
+  } catch {}
+}
+
+let currentJobId = null;
+let ws = null;
+let resultData = null;
+let selectedTitle = '';
+let tags = [];
+let selectedCover = null;
+// =========== 语音输入 ===========
+let recognition = null;
+let isRecording = false;
+
+function initVoice() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRecognition) {
+    document.getElementById('voiceBtn').style.display = 'none';
+    document.getElementById('voiceStatus').textContent = '此浏览器不支持语音识别';
+    return;
+  }
+  recognition = new SpeechRecognition();
+  recognition.lang = 'zh-CN';
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (event) => {
+    let finalText = '';
+    let interimText = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalText += transcript;
+      } else {
+        interimText += transcript;
+      }
+    }
+    if (finalText) {
+      const ta = document.getElementById('descInput');
+      const pos = ta.selectionStart;
+      const before = ta.value.substring(0, pos);
+      const after = ta.value.substring(ta.selectionEnd);
+      ta.value = before + finalText + after;
+      ta.selectionStart = ta.selectionEnd = before.length + finalText.length;
+    }
+    if (interimText) {
+      document.getElementById('voiceStatus').textContent = `正在识别: ${interimText}`;
+      document.getElementById('voiceStatus').style.color = '#4a9eff';
+    }
+  };
+
+  recognition.onerror = (event) => {
+    console.warn('Speech error:', event.error);
+    if (event.error === 'not-allowed') {
+      document.getElementById('voiceStatus').textContent = '麦克风权限被拒绝，请在浏览器设置中允许';
+      document.getElementById('voiceStatus').style.color = '#ff4757';
+    } else if (event.error !== 'aborted') {
+      document.getElementById('voiceStatus').textContent = `识别出错: ${event.error}，请重试`;
+      document.getElementById('voiceStatus').style.color = '#ff4757';
+    }
+    stopRecording();
+  };
+
+  recognition.onend = () => {
+    if (isRecording) {
+      try { recognition.start(); } catch { stopRecording(); }
+    }
+  };
+}
+
+function toggleVoice() {
+  if (isRecording) { stopRecording(); } else { startRecording(); }
+}
+
+function startRecording() {
+  if (!recognition) return;
+  isRecording = true;
+  recognition.start();
+  document.getElementById('voiceBtn').classList.add('recording');
+  document.getElementById('voiceBtn').textContent = '⏹';
+  document.getElementById('voiceStatus').textContent = '正在聆听...请描述视频内容';
+  document.getElementById('voiceStatus').style.color = '#ff6b35';
+}
+
+function stopRecording() {
+  if (!recognition) return;
+  isRecording = false;
+  try { recognition.stop(); } catch { /* ignore */ }
+  document.getElementById('voiceBtn').classList.remove('recording');
+  document.getElementById('voiceBtn').textContent = '🎤';
+  document.getElementById('voiceStatus').textContent = '点击麦克风语音输入描述';
+  document.getElementById('voiceStatus').style.color = '#555';
+}
+
+initVoice();
+
+// =========== WebSocket连接 ===========
+function connectWS() {
+  const proto = location.protocol === 'https:' ? 'wss' : 'ws';
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+
+  ws.onopen = () => {
+    document.getElementById('statusDot').className = 'status-dot connected';
+    document.getElementById('statusDot').title = '已连接';
+    console.log('WS connected');
+  };
+
+  ws.onmessage = (e) => {
+    const data = JSON.parse(e.data);
+    handleMessage(data);
+  };
+
+  ws.onclose = () => {
+    document.getElementById('statusDot').className = 'status-dot error';
+    document.getElementById('statusDot').title = '已断开';
+    console.log('WS closed, reconnecting in 3s...');
+    setTimeout(connectWS, 3000);
+  };
+
+  ws.onerror = () => {
+    document.getElementById('statusDot').className = 'status-dot error';
+  };
+}
+
+function handleMessage(data) {
+  switch (data.type) {
+    case 'connected':
+      if (currentJobId) {
+        ws.send(JSON.stringify({ type: 'register_job', jobId: currentJobId }));
+      }
+      break;
+
+    case 'progress':
+      updateProgress(data.step, data.total, data.message, data.percent);
+      break;
+
+    case 'stage':
+      appendStageLine(data);
+      break;
+
+    case 'approvals':
+      renderApprovals(data.items || []);
+      break;
+
+    case 'result':
+      showResult(data.data);
+      break;
+
+    case 'error':
+      document.getElementById('progressCard').classList.add('active');
+      updateProgress(0, 5, data.message || '处理失败', 0);
+      showToast('处理没有完成', 'error');
+      document.getElementById('submitBtn').disabled = false;
+      break;
+
+    case 'publishing':
+      document.getElementById('publishingOverlay').classList.add('active');
+      break;
+
+    case 'published':
+      document.getElementById('publishingOverlay').classList.remove('active');
+      document.getElementById('publishBtn').disabled = true;
+      document.getElementById('publishBtn').textContent = '✅ 草稿已保存';
+      if (data.draft && data.aid) {
+        showToast(`✅ 草稿保存成功！AID: ${data.aid}，请到B站创作中心发布`, 'success');
+      } else if (data.bvid) {
+        showToast(`✅ 投稿成功！BV号: ${data.bvid}`, 'success');
+      }
+      break;
+
+    case 'chat_stream':
+      // Grok处理状态
+      const msgs = document.querySelectorAll('.chat-msg.typing');
+      if (msgs.length > 0) {
+        const typingMsg = msgs[msgs.length - 1];
+        // Accumulate into a streaming message
+        let streamEl = document.getElementById('chatStreaming');
+        if (!streamEl) {
+          typingMsg.remove();
+          streamEl = addChatMessage(data.text, 'streaming');
+          streamEl.id = 'chatStreaming';
+        } else {
+          streamEl.textContent += data.text;
+        }
+      }
+      break;
+
+    case 'chat_reply':
+      // Grok最终回复
+      const streamMsg = document.getElementById('chatStreaming');
+      if (streamMsg) {
+        streamMsg.id = '';
+        streamMsg.className = 'chat-msg agent';
+        streamMsg.textContent = data.reply;
+      } else {
+        // Remove typing indicator and show reply
+        document.querySelectorAll('.chat-msg.typing').forEach(el => el.remove());
+        addChatMessage(data.reply, 'agent');
+      }
+      chatStreaming = false;
+      document.getElementById('chatSendBtn').disabled = false;
+      break;
+
+    case 'chat_error':
+      document.querySelectorAll('.chat-msg.typing').forEach(el => el.remove());
+      const streamErr = document.getElementById('chatStreaming');
+      if (streamErr) streamErr.remove();
+      addChatMessage('❌ ' + data.error, 'agent');
+      chatStreaming = false;
+      document.getElementById('chatSendBtn').disabled = false;
+      break;
+  }
+}
+
+function appendStageLine(event) {
+  const log = document.getElementById('stageLog');
+  if (!log) return;
+  const line = document.createElement('div');
+  line.className = `stage-line ${event.status || ''}`;
+  const stage = event.stage || 'stage';
+  const status = event.status || '';
+  const message = event.message || '';
+  line.textContent = `${stage} · ${status}${message ? ' · ' + message : ''}`;
+  log.appendChild(line);
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderApprovals(items) {
+  const card = document.getElementById('approvalCard');
+  const list = document.getElementById('approvalList');
+  const pending = BiliUiHelpers.renderApprovalList(items || [], {
+    document,
+    container: list,
+    async onAck(id) {
+      try {
+        const resp = await fetch('/api/approvals', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: currentJobId, ids: [id] }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.error);
+        renderApprovals(data.items || []);
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    },
+  });
+  card.style.display = pending > 0 ? '' : 'none';
+}
+
+function renderBranches(branches) {
+  BiliUiHelpers.renderBranchList(branches || [], {
+    document,
+    container: document.getElementById('branchList'),
+    async onApply(id) {
+      try {
+        const resp = await fetch('/api/branches/apply', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ jobId: currentJobId, branchId: id }),
+        });
+        const data = await resp.json();
+        if (!data.success) throw new Error(data.error);
+        showResult(data.result);
+        showToast('已采用这组标题试验', 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    },
+  });
+}
+
+async function refreshJobExtras() {
+  if (!currentJobId) return;
+  try {
+    const [approvalsResp, branchesResp] = await Promise.all([
+      fetch(`/api/approvals?jobId=${encodeURIComponent(currentJobId)}`),
+      fetch(`/api/branches?jobId=${encodeURIComponent(currentJobId)}`),
+    ]);
+    const approvals = await approvalsResp.json();
+    const branches = await branchesResp.json();
+    renderApprovals(approvals.items || []);
+    renderBranches(branches.branches || []);
+  } catch {}
+}
+
+async function createTitleBranch() {
+  if (!currentJobId) { showToast('没有活跃的任务', 'error'); return; }
+  const button = document.getElementById('branchBtn');
+  button.disabled = true;
+  try {
+    const resp = await fetch('/api/branches', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: currentJobId, message: '在不改变事实的前提下，另给五个具体标题' }),
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error);
+    showToast(data.reply || '已生成标题试验，当前文案未改动', 'success');
+    await refreshJobExtras();
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    button.disabled = false;
+  }
+}
+
+function updateProgress(step, total, message, percent) {
+  const bar = document.getElementById('progressBar');
+  const text = document.getElementById('progressText');
+  const card = document.getElementById('progressCard');
+  const title = document.getElementById('progressTitle');
+  const chips = document.querySelectorAll('.step-chip');
+  const failed = BiliUiHelpers.isPrepareFailure(message);
+
+  card.classList.toggle('failed', failed);
+  if (title) title.textContent = failed ? '这次没完成' : '视频处理中';
+  bar.style.width = failed ? '100%' : percent + '%';
+  text.textContent = failed ? message : `[${step}/${total}] ${message}`;
+  if (failed) document.getElementById('submitBtn').disabled = false;
+
+  chips.forEach((chip, i) => {
+    if (failed) chip.className = 'step-chip pending';
+    else if (i < step) chip.className = 'step-chip done';
+    else if (i === step) chip.className = 'step-chip active';
+    else chip.className = 'step-chip pending';
+  });
+}
+
+function showResult(data) {
+  resultData = data;
+  document.getElementById('progressCard').classList.remove('active');
+  document.getElementById('progressText').textContent = '处理完成！';
+  document.querySelectorAll('.step-chip').forEach(c => c.className = 'step-chip done');
+
+  const section = document.getElementById('resultSection');
+  section.classList.add('active');
+
+  // 语音状态仅表示内容理解时的检测结果，不表示生成或上传了字幕。
+  const downloadNote = document.getElementById('downloadNote');
+  if (downloadNote) {
+    downloadNote.textContent = data.download_note || '';
+    downloadNote.style.display = data.download_note ? '' : 'none';
+  }
+  const badge = document.getElementById('speechBadge');
+  const speechStatus = document.createElement('span');
+  speechStatus.className = `speech-badge ${data.has_speech === true ? 'yes' : 'no'}`;
+  speechStatus.textContent = BiliUiHelpers.speechStatusCopy(data.has_speech);
+  badge.replaceChildren(speechStatus);
+  const burnBtn = document.getElementById('burnSubsBtn');
+  if (burnBtn) {
+    const hasSubs = Boolean(String(data.subtitle_file || '').trim());
+    burnBtn.style.display = hasSubs ? 'none' : '';
+    burnBtn.disabled = false;
+    burnBtn.textContent = '🅩 补烧中文字幕';
+  }
+
+  // 截图
+  if (data.screenshots && data.screenshots.length > 0) {
+    const card = document.getElementById('screenshotCard');
+    const grid = document.getElementById('screenshotGrid');
+    card.style.display = '';
+    grid.innerHTML = '';
+    selectedCover = null;
+    screenshotPaths = data.screenshots.slice().sort((a, b) => {
+      const na = parseInt(a.match(/(\d+)\.jpg/)?.[1] || '0');
+      const nb = parseInt(b.match(/(\d+)\.jpg/)?.[1] || '0');
+      return na - nb;
+    });
+    screenshotPaths.forEach((path, i) => grid.appendChild(createScreenshotCard(path, i)));
+  }
+
+  document.getElementById('tidCard').style.display = '';
+  document.getElementById('tidInput').value = Number.isInteger(Number(data.tid)) ? String(Number(data.tid)) : '';
+
+  // 活动列表由B站实时返回；任务结果为空时自动查询，但不替用户选择活动。
+  if (!Array.isArray(data.activities) || data.activities.length === 0) {
+    queueMicrotask(() => queryActivities(true));
+  }
+
+  // 标题区域在每次结果渲染时复位，避免切换任务后保留过期的警告或选择。
+  BiliUiHelpers.renderTitleChoices(data, {
+    document,
+    titleCard: document.getElementById('titleCard'),
+    warning: document.getElementById('copyReviewWarning'),
+    candidates: document.getElementById('titleCandidates'),
+    customTitle: document.getElementById('customTitle'),
+    onSelected(title) { selectedTitle = title; },
+  });
+
+  // 标签
+  if (data.tags && data.tags.length > 0) {
+    document.getElementById('tagCard').style.display = '';
+    tags = [...data.tags];
+    renderTags();
+  }
+
+  // 活动
+  renderActivities(data.activities || []);
+
+  // 描述
+  document.getElementById('descCard').style.display = '';
+  document.getElementById('descEditor').value = data.description || '';
+
+  // Load video info for split feature
+  loadVideoInfo();
+  refreshJobExtras();
+}
+
+// 截图路径缓存（排序后的实际路径列表）
+let screenshotPaths = [];
+
+function toWorkspaceUrl(path) {
+  const value = String(path || '');
+  const marker = '/workspace/';
+  const index = value.lastIndexOf(marker);
+  return index >= 0 ? value.slice(index) : value;
+}
+
+function createScreenshotCard(path, index, revision = '') {
+  const card = document.createElement('div');
+  card.className = 'screenshot-card';
+  const image = document.createElement('img');
+  const workspaceUrl = toWorkspaceUrl(path);
+  image.src = revision ? `${workspaceUrl}?v=${encodeURIComponent(revision)}` : workspaceUrl;
+  image.alt = `frame ${index + 1}`;
+  const badge = document.createElement('div');
+  badge.className = 'cover-badge';
+  badge.textContent = '封面';
+  card.append(image, badge);
+  card.onclick = () => selectCover(index, card);
+  if (index === 0) queueMicrotask(() => selectCover(index, card));
+  return card;
+}
+
+function renderActivities(activities) {
+  const card = document.getElementById('activityCard');
+  const list = document.getElementById('activityList');
+  list.replaceChildren();
+  window.selectedActivity = null;
+  if (!Array.isArray(activities) || activities.length === 0) {
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = '';
+  const hint = document.createElement('div');
+  hint.className = 'activity-empty';
+  hint.textContent = '请点击选择一个与视频内容相符的活动；不选择则不会参加活动。';
+  list.appendChild(hint);
+  activities.forEach(activity => {
+    const item = document.createElement('div');
+    item.className = `activity-item${activity.recommended ? ' recommended' : ''}`;
+    item.dataset.topicId = String(activity.topic_id || '');
+    item.dataset.missionId = String(activity.mission_id || '');
+    item.dataset.name = String(activity.name || '');
+
+    const details = document.createElement('div');
+    details.style.flex = '1';
+    const name = document.createElement('div');
+    name.className = 'act-name';
+    name.textContent = String(activity.name || '未命名活动');
+    const threshold = document.createElement('div');
+    threshold.className = 'act-threshold';
+    threshold.textContent = String(activity.threshold || activity.description || '');
+    details.append(name, threshold);
+    const reward = document.createElement('div');
+    reward.className = 'act-reward';
+    reward.textContent = String(activity.reward || '');
+    item.append(details, reward);
+    if (activity.recommended) {
+      const badge = document.createElement('span');
+      badge.className = 'act-badge';
+      badge.textContent = '推荐';
+      item.appendChild(badge);
+    }
+    item.onclick = () => {
+      document.querySelectorAll('.activity-item').forEach(element => element.classList.remove('selected'));
+      item.classList.add('selected');
+      window.selectedActivity = { topic_id: item.dataset.topicId, name: item.dataset.name, mission_id: item.dataset.missionId };
+      showToast(`已选择活动：${item.dataset.name}`, 'success');
+    };
+    list.appendChild(item);
+  });
+}
+
+function selectCover(index, el) {
+  document.querySelectorAll('.screenshot-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedCover = index;
+}
+
+function renderTags() {
+  const container = document.getElementById('tagsContainer');
+  container.innerHTML = '';
+  tags.forEach((tag, i) => {
+    const chip = document.createElement('div');
+    chip.className = 'tag-chip';
+    chip.appendChild(document.createTextNode(String(tag)));
+    const removeButton = document.createElement('button');
+    removeButton.type = 'button';
+    removeButton.textContent = '×';
+    removeButton.onclick = () => removeTag(i);
+    chip.appendChild(removeButton);
+    container.appendChild(chip);
+  });
+}
+
+function removeTag(index) {
+  tags.splice(index, 1);
+  renderTags();
+}
+
+document.getElementById('addTagInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    const input = e.target;
+    const val = input.value.trim();
+    if (val && !tags.includes(val) && tags.length < 10) {
+      tags.push(val);
+      renderTags();
+      input.value = '';
+    }
+  }
+});
+
+document.getElementById('customTitle').addEventListener('input', (e) => {
+  selectedTitle = e.target.value;
+  BiliUiHelpers.clearTitleChoiceSelection(document.getElementById('titleCandidates'));
+});
+
+// 提交
+async function handleSubmit() {
+  const input = document.getElementById('urlInput');
+  const url = BiliUiHelpers.extractVideoUrl(input.value);
+  input.value = url;
+  if (!url) { showToast('请输入视频链接', 'error'); return; }
+
+  const desc = document.getElementById('descInput').value.trim();
+  const burnChineseSubtitles = document.getElementById('burnSubsCheck').checked;
+  document.getElementById('submitBtn').disabled = true;
+  const progressCard = document.getElementById('progressCard');
+  progressCard.classList.remove('failed');
+  progressCard.classList.add('active');
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('stageLog').replaceChildren();
+  updateProgress(0, 5, '正在连接本地服务...', 0);
+
+  try {
+    const resp = await fetch('/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url, description: desc, burnChineseSubtitles })
+    });
+    const data = await resp.json().catch(() => ({ success: false, error: `本地服务响应异常(${resp.status})` }));
+    if (!data.success) throw new Error(data.error);
+    currentJobId = data.jobId;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'register_job', jobId: currentJobId }));
+    }
+  } catch (err) {
+    const detail = err instanceof TypeError
+      ? '本地服务未连接，请关闭旧页面并重新双击桌面的“B站投稿助手-Grok-v2”'
+      : err.message;
+    document.getElementById('progressCard').classList.add('active');
+    updateProgress(0, 5, detail, 0);
+    showToast('处理没有完成', 'error');
+    document.getElementById('submitBtn').disabled = false;
+  }
+}
+
+async function burnExistingSubtitles() {
+  if (!currentJobId) { showToast('没有可补烧的任务', 'error'); return; }
+  const burnBtn = document.getElementById('burnSubsBtn');
+  if (burnBtn) {
+    burnBtn.disabled = true;
+    burnBtn.textContent = '正在补烧字幕...';
+  }
+  document.getElementById('progressCard').classList.add('active');
+  updateProgress(3, 5, '正在补烧中文字幕...', 58);
+  try {
+    const resp = await fetch('/api/burn-subtitles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: currentJobId }),
+    });
+    const data = await resp.json().catch(() => ({ success: false, error: `本地服务响应异常(${resp.status})` }));
+    if (!data.success) throw new Error(data.error);
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ type: 'register_job', jobId: currentJobId }));
+    }
+    showToast('已开始补烧中文字幕', 'success');
+  } catch (err) {
+    if (burnBtn) {
+      burnBtn.disabled = false;
+      burnBtn.textContent = '🅩 补烧中文字幕';
+    }
+    showToast(`补烧字幕失败: ${err.message}`, 'error');
+  }
+}
+
+// 投稿（保存草稿）
+function publishSavedNote(data) {
+  const folder = data.localArchive?.dir || document.getElementById('localSavePath')?.textContent || '';
+  const file = data.localArchive?.files?.[0]?.split('/').pop();
+  let note = file ? ` 本地已保存：${file}` : (folder ? ` 本地目录：${folder}` : '');
+  if (data.channels?.requested) {
+    note += data.channels.started
+      ? ' 已打开视频号草稿，请自己点发表。'
+      : ` 视频号未打开：${data.channels.error || '未知错误'}`;
+  }
+  return note;
+}
+
+async function handlePublish() {
+  const title = document.getElementById('customTitle').value.trim() || selectedTitle;
+  if (!title) { showToast('请选择或输入标题', 'error'); return; }
+
+  // 标签校验：活动可选，有活动时活动占1位
+  const hasActivity = window.selectedActivity && window.selectedActivity.topic_id;
+  const minTags = hasActivity ? 9 : 10;
+  const maxTags = 10;
+  if (tags.length < minTags) {
+    showToast(`标签至少${maxTags}个（含活动占${hasActivity ? 1 : 0}位），当前${tags.length}个，需填${minTags}个标签`, 'error');
+    return;
+  }
+  if (tags.length > maxTags) {
+    showToast(`标签最多${maxTags}个（含活动占${hasActivity ? 1 : 0}位），请删减`, 'error');
+    return;
+  }
+  if (!currentJobId) { showToast('没有活跃的任务', 'error'); return; }
+  const tid = Number(document.getElementById('tidInput').value);
+  if (!Number.isInteger(tid) || tid < 1 || tid > 9999) {
+    showToast('请填写正确的B站分区ID', 'error');
+    return;
+  }
+
+  const description = document.getElementById('descEditor').value.trim();
+  const publishButton = document.getElementById('publishBtn');
+  publishButton.disabled = true;
+  publishButton.textContent = '正在保存草稿...';
+  document.getElementById('publishingOverlay').classList.add('active');
+
+  try {
+    const body = {
+      jobId: currentJobId, title, tags, description, tid,
+      coverPath: screenshotPaths[selectedCover] || undefined,
+      coverIndex: selectedCover !== undefined ? selectedCover : 0,
+      postToChannels: document.getElementById('channelsPostCheck').checked === true,
+    };
+    // 活动可选
+    if (hasActivity) {
+      body.topicId = window.selectedActivity.topic_id;
+      if (window.selectedActivity.mission_id) {
+        body.missionId = window.selectedActivity.mission_id;
+      }
+    }
+    const resp = await fetch('/api/publish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await resp.json();
+    if (!data.success) {
+      if (Array.isArray(data.pending) && data.pending.length) renderApprovals(data.pending);
+      const saved = data.localArchive?.dir ? ` 视频已留在 ${data.localArchive.dir}` : '';
+      throw new Error(`${data.error || '保存失败'}${saved}`);
+    }
+    if (data.activity?.topicId) {
+      publishButton.textContent = '✅ 草稿已保存 · 已带活动';
+      showToast(`✅ 已带活动保存：${window.selectedActivity?.name || data.activity.topicId}${publishSavedNote(data)}`, 'success');
+    } else {
+      publishButton.textContent = '✅ 草稿已保存 · 未选活动';
+      showToast(`草稿已保存，但没有选择活动${publishSavedNote(data)}`, '');
+    }
+  } catch (err) {
+    document.getElementById('publishingOverlay').classList.remove('active');
+    publishButton.disabled = false;
+    publishButton.textContent = '💾 保存草稿';
+    showToast(`保存草稿失败: ${err.message}`, 'error');
+  }
+}
+
+// 重新截封面
+async function rescreenshot(count) {
+  if (!currentJobId) { showToast('没有活跃任务', 'error'); return; }
+  showToast(`正在重新截取${count}张封面...`, '');
+  try {
+    const resp = await fetch('/api/rescreenshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: currentJobId, count })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      // 刷新截图显示
+      const grid = document.getElementById('screenshotGrid');
+      grid.innerHTML = '';
+      selectedCover = null;
+      screenshotPaths = data.screenshots.slice().sort((a, b) => {
+        const na = parseInt(a.match(/(\d+)\.jpg/)?.[1] || '0');
+        const nb = parseInt(b.match(/(\d+)\.jpg/)?.[1] || '0');
+        return na - nb;
+      });
+      screenshotPaths.forEach((path, i) => grid.appendChild(createScreenshotCard(path, i, data.revision || Date.now())));
+      showToast(`✅ 已截取${data.screenshots.length}张新封面`, 'success');
+    } else {
+      showToast(`截图失败: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showToast(`截图失败: ${err.message}`, 'error');
+  }
+}
+
+// 下载到桌面
+async function downloadToDesktop() {
+  if (!currentJobId) { showToast('没有活跃任务', 'error'); return; }
+  showToast('正在复制到桌面...', '');
+  try {
+    const resp = await fetch('/api/download', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: currentJobId })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      showToast(`✅ 已保存到桌面: ${data.path.split('/').pop()}`, 'success');
+    } else {
+      showToast(`下载失败: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showToast(`下载失败: ${err.message}`, 'error');
+  }
+}
+
+// 查询B站活动
+let activitiesLoadedTid = null;
+async function queryActivities(silent = false) {
+  const tid = Number(document.getElementById('tidInput').value);
+  if (!Number.isInteger(tid) || tid < 1 || tid > 9999) {
+    showToast('请先填写正确的B站分区ID', 'error');
+    return;
+  }
+  if (silent && activitiesLoadedTid === tid) return;
+  if (!silent) showToast('正在查询B站活动...', '');
+  try {
+    const resp = await fetch(`/api/activities?tid=${encodeURIComponent(tid)}`);
+    const data = await resp.json();
+    if (data.success) {
+      activitiesLoadedTid = tid;
+      renderActivities(data.activities || []);
+      if (!silent) showToast(data.activities?.length ? `查询到${data.activities.length}个活动` : '当前分区暂无可用活动', data.activities?.length ? 'success' : '');
+    } else {
+      showToast(`查询失败: ${data.error}`, 'error');
+    }
+  } catch (err) {
+    showToast(`查询失败: ${err.message}`, 'error');
+  }
+}
+
+// ===== Video Split Logic =====
+let videoDuration = 0;  // seconds
+let videoFileSize = 0;  // bytes
+let splitPoints = [];   // seconds where to split (NOT including 0 and duration)
+let splitExecuted = false;
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + 'KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + 'MB';
+  return (bytes / 1024 / 1024 / 1024).toFixed(2) + 'GB';
+}
+
+async function loadVideoInfo() {
+  if (!currentJobId) return;
+  try {
+    const resp = await fetch(`/api/videoinfo?jobId=${currentJobId}`);
+    const data = await resp.json();
+    if (data.error) return; // No video info available
+    // Extract duration - support both ffprobe nested format and flat format
+    if (data.format && data.format.duration) {
+      videoDuration = parseFloat(data.format.duration);
+    } else if (data.duration) {
+      videoDuration = parseFloat(data.duration);
+    }
+    // Extract file size - support both formats
+    if (data.format && data.format.size) {
+      videoFileSize = parseInt(data.format.size);
+    } else if (data.size_bytes) {
+      videoFileSize = parseInt(data.size_bytes);
+    } else if (data.size) {
+      videoFileSize = parseInt(data.size);
+    }
+    if (videoDuration <= 0) return;
+    document.getElementById('splitDuration').textContent = formatTime(videoDuration);
+    document.getElementById('splitSize').textContent = formatSize(videoFileSize);
+
+    // Show split card only if video > 5min or > 3.5GB
+    const splitCard = document.getElementById('splitCard');
+    if (videoDuration > 300 || videoFileSize > 3.5 * 1024 * 1024 * 1024) {
+      splitCard.style.display = '';
+      // Auto-suggest split if > 30min
+      if (videoDuration > 1800) {
+        const numParts = Math.ceil(videoDuration / 900); // 15min per part
+        autoSplitN(numParts);
+      }
+    }
+    updateSplitUI();
+  } catch (err) {
+    console.warn('Failed to load video info for split:', err);
+  }
+}
+
+function updateSplitUI() {
+  const timeline = document.getElementById('splitTimeline');
+  const previewList = document.getElementById('splitPreviewList');
+
+  // Clear existing bars
+  timeline.querySelectorAll('.split-bar').forEach(el => el.remove());
+  previewList.innerHTML = '';
+
+  // Add split bars
+  const sorted = [...splitPoints].sort((a, b) => a - b);
+  sorted.forEach((pt, i) => {
+    const pct = (pt / videoDuration) * 100;
+    const bar = document.createElement('div');
+    bar.className = 'split-bar';
+    bar.style.left = pct + '%';
+    bar.title = formatTime(pt);
+
+    const label = document.createElement('span');
+    label.className = 'split-time-label';
+    label.textContent = formatTime(pt);
+    bar.appendChild(label);
+
+    // Drag to move
+    let dragging = false;
+    bar.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      dragging = true;
+      const onMove = (ev) => {
+        if (!dragging) return;
+        const rect = timeline.getBoundingClientRect();
+        const x = ev.clientX - rect.left;
+        const newTime = Math.max(1, Math.min(videoDuration - 1, (x / rect.width) * videoDuration));
+        splitPoints[i] = newTime;
+        updateSplitUI();
+      };
+      const onUp = () => {
+        dragging = false;
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+      };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+
+    // Double-click to remove
+    bar.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      splitPoints.splice(i, 1);
+      splitExecuted = false;
+      updateSplitUI();
+    });
+
+    timeline.appendChild(bar);
+  });
+
+  // Update count
+  document.getElementById('splitCount').textContent = sorted.length + 1;
+
+  // Preview parts
+  const allPts = [0, ...sorted, videoDuration];
+  for (let i = 0; i < allPts.length - 1; i++) {
+    const dur = allPts[i + 1] - allPts[i];
+    // Estimate file size proportionally
+    const estSize = videoFileSize * (dur / videoDuration);
+    const el = document.createElement('div');
+    el.className = 'split-part';
+    el.innerHTML = `<span class="part-title">P${i + 1}</span> <span class="part-dur">${formatTime(dur)} ~${formatSize(estSize)}</span>`;
+    previewList.appendChild(el);
+  }
+}
+
+function handleTimelineClick(event) {
+  const timeline = document.getElementById('splitTimeline');
+  const rect = timeline.getBoundingClientRect();
+  const x = event.clientX - rect.left;
+  const time = Math.max(1, Math.min(videoDuration - 1, (x / rect.width) * videoDuration));
+  // Snap to nearest second
+  const snapped = Math.round(time);
+  if (!splitPoints.includes(snapped)) {
+    splitPoints.push(snapped);
+    splitExecuted = false;
+    updateSplitUI();
+  }
+}
+
+function addSplitPoint() {
+  if (videoDuration <= 0) return;
+  // Find the largest gap and split it
+  const allPts = [0, ...splitPoints.sort((a, b) => a - b), videoDuration];
+  let maxGap = 0, maxIdx = 0;
+  for (let i = 0; i < allPts.length - 1; i++) {
+    const gap = allPts[i + 1] - allPts[i];
+    if (gap > maxGap) { maxGap = gap; maxIdx = i; }
+  }
+  const newPt = Math.round((allPts[maxIdx] + allPts[maxIdx + 1]) / 2);
+  splitPoints.push(newPt);
+  splitExecuted = false;
+  updateSplitUI();
+}
+
+function clearSplitPoints() {
+  splitPoints = [];
+  splitExecuted = false;
+  updateSplitUI();
+  // Reset result.json split state
+  if (resultData) {
+    delete resultData.split_segments;
+    delete resultData.video_files;
+    delete resultData.is_multi_part;
+  }
+}
+
+function autoSplitEven() {
+  if (videoDuration <= 0) return;
+  const n = prompt('分成几段？', '2');
+  if (!n) return;
+  const parts = parseInt(n);
+  if (isNaN(parts) || parts < 2) return;
+  autoSplitN(parts);
+}
+
+function autoSplitN(parts) {
+  splitPoints = [];
+  const interval = videoDuration / parts;
+  for (let i = 1; i < parts; i++) {
+    splitPoints.push(Math.round(interval * i));
+  }
+  splitExecuted = false;
+  updateSplitUI();
+}
+
+function autoSplitBySize() {
+  // B站单个视频文件建议不超过4GB
+  const maxBytes = 3.8 * 1024 * 1024 * 1024; // 3.8GB safety margin
+  if (videoFileSize <= maxBytes) {
+    showToast('视频文件大小在B站限制内，无需分段', '');
+    return;
+  }
+  const parts = Math.ceil(videoFileSize / maxBytes);
+  autoSplitN(parts);
+}
+
+async function executeSplit() {
+  if (splitPoints.length === 0) {
+    showToast('请先添加分割点', 'error');
+    return;
+  }
+  if (!currentJobId) {
+    showToast('没有活跃任务', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('executeSplitBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 切割中...';
+
+  try {
+    const resp = await fetch('/api/split', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId: currentJobId, splitPoints: splitPoints.sort((a, b) => a - b) })
+    });
+    const data = await resp.json();
+    if (data.success) {
+      splitExecuted = true;
+      showToast(`✅ 已切割为 ${data.segments.length} 段`, 'success');
+      updateSplitUI();
+      btn.textContent = '✅ 已切割';
+      btn.className = 'btn';
+      btn.style.background = '#1a3a1a';
+      btn.style.color = '#00d26a';
+    } else {
+      showToast(`切割失败: ${data.error}`, 'error');
+      btn.disabled = false;
+      btn.textContent = '✂️ 执行切割';
+    }
+  } catch (err) {
+    showToast(`切割失败: ${err.message}`, 'error');
+    btn.disabled = false;
+    btn.textContent = '✂️ 执行切割';
+  }
+}
+
+function resetAll() {
+  document.getElementById('urlInput').value = '';
+  document.getElementById('descInput').value = '';
+  document.getElementById('submitBtn').disabled = false;
+  document.getElementById('progressCard').classList.remove('active');
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('screenshotCard').style.display = 'none';
+  document.getElementById('splitCard').style.display = 'none';
+  document.getElementById('titleCard').style.display = 'none';
+  document.getElementById('tidCard').style.display = 'none';
+  document.getElementById('tidInput').value = '';
+  document.getElementById('tagCard').style.display = 'none';
+  document.getElementById('activityCard').style.display = 'none';
+  document.getElementById('descCard').style.display = 'none';
+  document.getElementById('speechBadge').innerHTML = '';
+  currentJobId = null;
+  resultData = null;
+  selectedTitle = '';
+  tags = [];
+  selectedCover = null;
+  screenshotPaths = [];
+  window.selectedActivity = null;
+  const publishButton = document.getElementById('publishBtn');
+  publishButton.disabled = false;
+  publishButton.textContent = '💾 保存草稿';
+  // Reset split state
+  videoDuration = 0;
+  videoFileSize = 0;
+  splitPoints = [];
+  splitExecuted = false;
+  const btn = document.getElementById('executeSplitBtn');
+  if (btn) { btn.disabled = false; btn.textContent = '✂️ 执行切割'; btn.className = 'btn success'; btn.style = ''; }
+  updateProgress(0, 5, '准备处理...', 0);
+}
+
+function showToast(message, type = '') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
+
+// ===== Load Existing Job =====
+function showLoadJobModal() {
+  // 创建弹窗
+  const overlay = document.createElement('div');
+  overlay.id = 'loadJobOverlay';
+  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:1000;display:flex;align-items:center;justify-content:center;';
+  overlay.onclick = (e) => { if (e.target === overlay) overlay.remove(); };
+
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background:#1e1e2e;border-radius:12px;padding:24px;width:90%;max-width:600px;max-height:80vh;overflow-y:auto;color:#e0e0e0;';
+  modal.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h3 style="margin:0;font-size:18px;">📂 加载已有项目</h3>
+      <button onclick="document.getElementById('loadJobOverlay').remove()" style="background:none;border:none;color:#888;font-size:24px;cursor:pointer;">✕</button>
+    </div>
+    <div id="loadJobList" style="display:flex;flex-direction:column;gap:8px;">
+      <div style="text-align:center;color:#888;">加载中...</div>
+    </div>
+  `;
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  // 获取job列表
+  fetch('/api/jobs')
+    .then(r => r.json())
+    .then(data => {
+      const list = document.getElementById('loadJobList');
+      if (!data.jobs || data.jobs.length === 0) {
+        const empty = document.createElement('div');
+        empty.style.cssText = 'text-align:center;color:#888;padding:20px;';
+        empty.textContent = '暂无已完成的项目';
+        list.replaceChildren(empty);
+        return;
+      }
+      // 视频预览容器（插入在列表上方）
+      const videoPreview = document.createElement('div');
+      videoPreview.id = 'videoPreviewContainer';
+      videoPreview.style.cssText = 'display:none;margin-bottom:12px;background:#161622;border-radius:8px;overflow:hidden;';
+      videoPreview.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:#2a2a3a;">
+          <span id="videoPreviewTitle" style="font-size:13px;color:#4a9eff;font-weight:bold;"></span>
+          <button onclick="closeVideoPreview()" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;">✕</button>
+        </div>
+        <video id="videoPreviewPlayer" controls style="width:100%;max-height:400px;background:#000;" preload="metadata"></video>
+      `;
+      list.parentNode.insertBefore(videoPreview, list);
+
+      list.replaceChildren();
+      data.jobs.forEach(job => {
+        const sizeMB = job.videoSize ? (job.videoSize / 1024 / 1024).toFixed(1) + 'MB' : '--';
+        const item = document.createElement('div');
+        item.className = 'job-item';
+        item.style.cssText = 'background:#2a2a3a;border-radius:8px;padding:12px 16px;transition:background 0.2s;border:1px solid #3a3a4a;';
+        item.onmouseenter = () => { item.style.background = '#3a3a4a'; item.style.borderColor = '#4a9eff'; };
+        item.onmouseleave = () => { item.style.background = '#2a2a3a'; item.style.borderColor = '#3a3a4a'; };
+
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;';
+        const summary = document.createElement('div');
+        summary.style.cssText = 'flex:1;cursor:pointer;';
+        summary.onclick = () => loadExistingJob(job.jobId);
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight:bold;font-size:15px;color:#fff;margin-bottom:4px;';
+        title.textContent = String(job.title || '未命名项目');
+        const meta = document.createElement('div');
+        meta.style.cssText = 'font-size:12px;color:#888;';
+        meta.textContent = `${job.jobId} · ${sizeMB}`;
+        summary.append(title, meta);
+
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex;gap:8px;align-items:center;';
+        if (job.hasVideo) {
+          const preview = document.createElement('button');
+          preview.style.cssText = 'background:#ff6b35;color:#fff;padding:4px 10px;border-radius:6px;font-size:12px;border:none;cursor:pointer;';
+          preview.textContent = '▶ 预览';
+          preview.onclick = event => { event.stopPropagation(); previewJobVideo(job.jobId, job.title || '未命名项目'); };
+          actions.appendChild(preview);
+        }
+        const load = document.createElement('button');
+        load.style.cssText = 'background:#4a9eff;color:#fff;padding:4px 12px;border-radius:6px;font-size:13px;cursor:pointer;border:none;';
+        load.textContent = job.canContinue ? (job.hasBrief ? '从事实卡继续' : '继续生成文案') : '加载';
+        load.onclick = () => job.canContinue ? continueExistingJob(job.jobId) : loadExistingJob(job.jobId);
+        actions.appendChild(load);
+        row.append(summary, actions);
+        item.appendChild(row);
+        list.appendChild(item);
+      });
+    })
+    .catch(err => {
+      const list = document.getElementById('loadJobList');
+      const error = document.createElement('div');
+      error.style.cssText = 'text-align:center;color:#f44;';
+      error.textContent = `加载失败: ${err.message}`;
+      list.replaceChildren(error);
+    });
+}
+
+// 视频预览
+function previewJobVideo(jobId, title) {
+  const container = document.getElementById('videoPreviewContainer');
+  const player = document.getElementById('videoPreviewPlayer');
+  const titleEl = document.getElementById('videoPreviewTitle');
+  if (!container || !player) return;
+
+  player.src = `/workspace/${encodeURIComponent(jobId)}/output.mp4`;
+  titleEl.textContent = '▶ ' + title;
+  container.style.display = 'block';
+  player.play().catch(() => {}); // autoplay, ignore errors
+}
+
+function closeVideoPreview() {
+  const container = document.getElementById('videoPreviewContainer');
+  const player = document.getElementById('videoPreviewPlayer');
+  if (container) container.style.display = 'none';
+  if (player) { player.pause(); player.src = ''; }
+}
+
+async function continueExistingJob(jobId) {
+  currentJobId = jobId;
+  document.getElementById('progressCard').classList.add('active');
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'register_job', jobId }));
+  }
+  try {
+    const resp = await fetch('/api/continue', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId }),
+    });
+    const data = await resp.json();
+    if (!data.success) throw new Error(data.error);
+    showToast('已继续生成文案', 'success');
+  } catch (err) {
+    showToast(err.message, 'error');
+  }
+}
+
+async function loadExistingJob(jobId) {
+  document.getElementById('loadJobOverlay').remove();
+  currentJobId = jobId;
+
+  // 注册WebSocket job
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'register_job', jobId }));
+  }
+
+  // 隐藏输入区
+  document.getElementById('inputCard').style.display = 'none';
+
+  // 加载result
+  try {
+    const resp = await fetch(`/api/result?jobId=${encodeURIComponent(jobId)}`);
+    if (!resp.ok) throw new Error('result.json不存在');
+    const data = await resp.json();
+    showResult(data);
+    showToast(`已加载: ${data.title_candidates?.[0] || jobId}`, 'success');
+  } catch (err) {
+    showToast(`加载失败: ${err.message}`);
+    document.getElementById('inputCard').style.display = '';
+    currentJobId = null;
+  }
+}
+
+// URL回车提交
+document.getElementById('urlInput').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handleSubmit();
+});
+
+// ===== Chat Dialog Logic =====
+let chatOpen = false;
+let chatStreaming = false;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatPanel').classList.toggle('open', chatOpen);
+  document.getElementById('chatBubble').classList.toggle('active', chatOpen);
+  document.getElementById('chatBubble').textContent = chatOpen ? '✕' : '💬';
+  if (chatOpen) {
+    document.getElementById('chatInput').focus();
+  }
+}
+
+function addChatMessage(text, type) {
+  const container = document.getElementById('chatMessages');
+  const div = document.createElement('div');
+  div.className = `chat-msg ${type}`;
+  div.textContent = text;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
+}
+
+function sendChatMessage() {
+  const input = document.getElementById('chatInput');
+  const message = input.value.trim();
+  if (!message || chatStreaming) return;
+
+  addChatMessage(message, 'user');
+  input.value = '';
+  input.style.height = 'auto';
+  chatStreaming = true;
+  document.getElementById('chatSendBtn').disabled = true;
+
+  const typingEl = addChatMessage('Grok思考中...', 'typing');
+
+  // Send via WebSocket
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'chat', message, jobId: currentJobId }));
+  } else {
+    // Fallback to HTTP
+    fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, jobId: currentJobId })
+    })
+    .then(r => r.json())
+    .then(data => {
+      typingEl.remove();
+      if (data.success) {
+        addChatMessage(data.reply, 'agent');
+        if (data.result) showResult(data.result);
+      } else {
+        addChatMessage('错误: ' + (data.error || '未知错误'), 'agent');
+      }
+      chatStreaming = false;
+      document.getElementById('chatSendBtn').disabled = false;
+    })
+    .catch(err => {
+      typingEl.remove();
+      addChatMessage('连接失败: ' + err.message, 'agent');
+      chatStreaming = false;
+      document.getElementById('chatSendBtn').disabled = false;
+    });
+  }
+}
+
+function handleChatKeydown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendChatMessage();
+  }
+}
+
+// 启动
+connectWS();
+</script>
+
+<!-- Chat Dialog -->
+<button class="chat-bubble" id="chatBubble" onclick="toggleChat()" title="与Grok对话">💬</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <h3>🤖 Grok调整 <span class="badge">LIVE</span></h3>
+    <button onclick="toggleChat()" style="background:none;border:none;color:#888;font-size:18px;cursor:pointer;">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-msg system">可以让我帮忙调标题、改标签、debug投稿问题、查看B站活动</div>
+  </div>
+  <div class="chat-input-area">
+    <textarea id="chatInput" placeholder="例如：标题再短一点，加上标签「现场」(Shift+Enter换行)" rows="1" onkeydown="handleChatKeydown(event)"></textarea>
+    <button id="chatSendBtn" onclick="sendChatMessage()">发送</button>
+  </div>
+</div>
+</body>
+</html>

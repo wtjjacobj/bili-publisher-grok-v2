@@ -1,0 +1,4 @@
+bilibili-api-python==17.4.1
+faster-whisper==1.2.1
+httpx==0.28.1
+Pillow==12.2.0

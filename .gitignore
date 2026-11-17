@@ -1,0 +1,13 @@
+.auth-token
+.DS_Store
+__pycache__/
+*.pyc
+workspace/
+.worktrees/
+.superpowers/
+*.log
+.env
+node_modules/
+fonts/*.ttf
+fonts/*.ttc
+fonts/*.otf

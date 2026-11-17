@@ -1,0 +1,11 @@
+{
+  "name": "bili-publisher-grok-v2",
+  "version": "2.0.0",
+  "description": "Bilibili draft publisher Grok v2 with harness-style job turns, traces, approvals and lookup",
+  "scripts": {
+    "dev": "bun --hot server.ts",
+    "start": "bun server.ts",
+    "test": "bun test tests/grok_model.test.ts tests/grok_chat.test.ts tests/chat_turn.test.ts tests/job_trace.test.ts tests/job_approvals.test.ts tests/entity_lookup.test.ts tests/title_branches.test.ts tests/server_utils.test.ts tests/metadata_quality.test.ts tests/metadata_pipeline.test.ts tests/chinese_subtitles.test.ts tests/ui_helpers.test.ts tests/ui_helpers_route.test.ts tests/launcher_bundle.test.ts && /opt/homebrew/Caskroom/miniforge/base/bin/python3 -m unittest tests/test_bili_upload_cli.py tests/test_bili_activities.py tests/test_prepare_video.py tests/test_content_evidence.py tests/test_content_brief_fixtures.py",
+    "check": "bun run test && bun build server.ts --target bun --outfile /tmp/bili-publisher-grok-v2-server-check.js"
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "video_type": "影视战争片段",
+  "core_subject": "古代战争中的骑兵与燃烧建筑",
+  "core_subject_evidence_ids": ["frame-01", "frame-02", "frame-04"],
+  "core_event": "骑兵和步兵在浓烟与火势之间推进",
+  "core_event_evidence_ids": ["frame-01", "frame-04", "frame-07"],
+  "timeline": [
+    {
+      "time": 3.371,
+      "summary_zh": "大批士兵沿山坡和道路移动",
+      "evidence_ids": ["frame-01"]
+    },
+    {
+      "time": 10.115,
+      "summary_zh": "传统建筑屋顶被火焰吞没",
+      "evidence_ids": ["frame-02"]
+    },
+    {
+      "time": 23.601,
+      "summary_zh": "多名骑兵持长兵器从烟雾中冲过",
+      "evidence_ids": ["frame-04"]
+    },
+    {
+      "time": 43.830,
+      "summary_zh": "士兵在燃烧建筑前列队推进",
+      "evidence_ids": ["frame-07"]
+    }
+  ],
+  "turning_point": "骑兵从烟雾中的战场冲出",
+  "turning_point_evidence_ids": ["frame-04"],
+  "outcome": "画面回到燃烧建筑前继续推进的军队",
+  "outcome_evidence_ids": ["frame-07"],
+  "hook": "火场、浓烟与骑兵冲锋连续交替",
+  "hook_evidence_ids": ["frame-02", "frame-04", "frame-07"],
+  "evidence": [
+    {
+      "id": "source-title",
+      "kind": "source",
+      "summary_zh": "来源标题由发布账号名和阿拉伯语正文组成，没有给出作品名称"
+    },
+    {
+      "id": "source-description",
+      "kind": "source",
+      "summary_zh": "来源正文意为邀请观看电影画面之美，但没有写明具体片名"
+    },
+    {
+      "id": "frame-01",
+      "kind": "frame",
+      "summary_zh": "开头远景显示大批古代士兵移动"
+    },
+    {
+      "id": "frame-02",
+      "kind": "frame",
+      "summary_zh": "建筑屋顶猛烈燃烧并冒出浓烟"
+    },
+    {
+      "id": "frame-04",
+      "kind": "frame",
+      "summary_zh": "数名骑兵持长兵器横向冲过画面"
+    },
+    {
+      "id": "frame-07",
+      "kind": "frame",
+      "summary_zh": "士兵队伍出现在燃烧建筑前"
+    }
+  ],
+  "entities": [],
+  "source_account": "The Werewolf",
+  "verified_dialogue": [],
+  "uncertainties": ["具体电影或剧集名称无法由来源正文和画面确认"],
+  "forbidden_claims": ["具体片名已经确认", "The Werewolf是原创作者"]
+}

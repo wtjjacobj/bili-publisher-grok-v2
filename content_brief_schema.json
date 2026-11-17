@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "video_type",
+    "core_subject",
+    "core_subject_evidence_ids",
+    "core_event",
+    "core_event_evidence_ids",
+    "timeline",
+    "turning_point",
+    "turning_point_evidence_ids",
+    "outcome",
+    "outcome_evidence_ids",
+    "hook",
+    "hook_evidence_ids",
+    "evidence",
+    "entities",
+    "source_account",
+    "verified_dialogue",
+    "uncertainties",
+    "forbidden_claims"
+  ],
+  "properties": {
+    "video_type": { "type": "string", "minLength": 1 },
+    "core_subject": { "type": "string", "minLength": 1 },
+    "core_subject_evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "core_event": { "type": "string", "minLength": 1 },
+    "core_event_evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "timeline": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["time", "summary_zh", "evidence_ids"],
+        "properties": {
+          "time": { "type": "number", "minimum": 0 },
+          "summary_zh": { "type": "string", "minLength": 1 },
+          "evidence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "turning_point": { "type": "string" },
+    "turning_point_evidence_ids": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "outcome": { "type": "string" },
+    "outcome_evidence_ids": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "hook": { "type": "string", "minLength": 1 },
+    "hook_evidence_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "summary_zh"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "enum": ["source", "frame", "transcript"] },
+          "summary_zh": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "entities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["original_name", "zh_name", "type", "confidence", "evidence_ids"],
+        "properties": {
+          "original_name": { "type": "string", "minLength": 1 },
+          "zh_name": { "type": "string" },
+          "type": {
+            "type": "string",
+            "enum": ["person", "work", "location", "brand", "event", "organization", "other"]
+          },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+          "evidence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "source_account": { "type": "string" },
+    "verified_dialogue": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["text_original", "text_zh", "speaker", "evidence_ids"],
+        "properties": {
+          "text_original": { "type": "string", "minLength": 1 },
+          "text_zh": { "type": "string", "minLength": 1 },
+          "speaker": { "type": "string" },
+          "evidence_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "uncertainties": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "forbidden_claims": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}
